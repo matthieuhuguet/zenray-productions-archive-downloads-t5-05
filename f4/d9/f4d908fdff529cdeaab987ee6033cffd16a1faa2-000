@@ -1,0 +1,34 @@
+# FFMPEG
+
+Created: November 27, 2024 10:31 PM
+Update: January 23, 2025 11:58 AM
+
+<aside>
+💡
+
+Impressionnant, on peut utiliser des filtres pour enlever le bruit du vent sur ffmpeg.
+
+```bash
+ffmpeg -i Meditation.wav -af "afftdn" Meditation_clean.wav
+```
+
+</aside>
+
+![image.png](FFMPEG/image.png)
+
+[FFmpeg](https://www.ffmpeg.org/)
+
+[Builds - CODEX FFMPEG @ gyan.dev](https://www.gyan.dev/ffmpeg/builds/)
+
+![image.png](FFMPEG/image%201.png)
+
+### **Comparaison rapide :**
+
+| **Technologie** | **Polyvalence** | **Performance brute** | **Cas d’usage principal** |
+| --- | --- | --- | --- |
+| **FFmpeg** | Très élevée | Très haute | Conversion, encodage, streaming |
+| **GStreamer** | Élevée | Haute | Pipelines complexes, temps réel |
+| **Libav** | Moyenne | Haute | Conversion multimédia |
+| **MPV** | Moyenne | Moyenne | Lecture multimédia avancée |
+| **VLC** | Faible | Moyenne | Lecture universelle, conversion |
+| **MediaPipe** | Moyenne | Haute (IA) | Analyse vidéo avec IA, vision AR |
