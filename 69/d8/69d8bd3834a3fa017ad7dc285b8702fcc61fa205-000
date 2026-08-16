@@ -1,0 +1,83 @@
+# 3 Mai 2026
+
+Animation 3D … the futur ?
+
+3D Game 2016 2022 Japanese Game Nier Automata and Dark Souls 3 … 3D is not that important vs good design.
+
+![image.png](3%20Mai%202026/image.png)
+
+[Article Variation](3%20Mai%202026/Article%20Variation%20355d4ee179c3807ca8a1d58b8b475c5c.md)
+
+Passer d’une industrie à 200 milliards de dollars à 1000 milliards ?
+
+## **Nombre de variantes — raisonnement AAA**
+
+L'œil humain détecte la répétition à partir de **3-4 occurrences consécutives identiques**. Pour 41 planches :
+
+- 4 variantes → chaque variante répète ~10 fois. Acceptable.
+- 5 variantes → ~8 fois. Mieux.
+- 8 variantes → ~5 fois. Standard AAA clapboard.
+
+**Tranche à 4.** Assez pour casser la répétition, simple à gérer.
+
+---
+
+### **Ce que les équipes Arcane / Spider-Man font**
+
+- **Arcane / Spider-Man film** : UDIM. Tout est offline render. Pas de contrainte temps réel. Pas de tileables ni de trim sheets.
+- **RDR2 / Last of Us game** : environments en tileables Megascans-like + quelques trim sheets sur les modules architecturaux **hand-modeled**. Zéro procédural Houdini pour les assets de bâtiments individuels.
+- **Ghost of Tsushima grass** (que tu as étudié) : scattering procédural Houdini + tileables. Pas de trim sheets sur la végétation.
+
+| **Cas** | **Terme exact** | **UVs** | **Texture** | **Outil** |
+| --- | --- | --- | --- | --- |
+| Surface répétitive (planches, tuiles, béton) | **Tileable material** | 0→N (tiling) | Seamless 4K | Megascans / SD |
+| Pièce unique peinte (porte, croix, cadre) | **Unique unwrap** | 0→1 (packed) | Unique 2K–4K | Substance Painter |
+| Multi-matériaux sur un mesh sans séparer | **Color ID mask** | 0→1 par slot | Unique | SP + bake ID |
+| N instances partageant un atlas pré-planifié | **Trim sheet pipeline** | 0→1, zones fixes | Atlas planifié | SD + mapping manuel |
+
+La le problème c’est d’être bloqué sur une technologie.
+
+Trimsheet
+
+![image.png](3%20Mai%202026/image%201.png)
+
+![image.png](3%20Mai%202026/image%202.png)
+
+Le sota de procedural modelisation claude to blender est encore très loin du compte niveau modé par contre ça peut être intéressant de push plus loin j’ai besoin de créer des choses cohérentes. ça ne me coute pas d’energie de créer sur houdini.
+
+l’opportunité est donc encore possible il faut se bouger le cul avant que la fenetre ne se referme.
+
+![image.png](3%20Mai%202026/image%203.png)
+
+Prednre 1000 pages sur un sujet pour en comprendre l’essence et faire pareil peu importe le domaine /// apprendre à apprendre.
+
+Je vais passer par rizom uv pour les uv et un proxy sinon ça va être trop long.
+
+## **Standards game**
+
+| **Usage** | **Texel Density** | **Coverage Length (2048px)** |
+| --- | --- | --- |
+| Hero prop (inspection proche) | 20 px/cm | 1m |
+| Architecture hero (church) | 10 px/cm | 2m |
+| Environment mid | 5 px/cm | 4m |
+| Background | 2.5 px/cm | 8m |
+
+![image.png](3%20Mai%202026/image%204.png)
+
+Pour un héro asset on n’a pas besoin de l’uv…
+
+![image.png](3%20Mai%202026/image%205.png)
+
+Context is King.
+
+| **Critère** | **UDIM** | **Multi-Texture Set** | **Trimsheet** |
+| --- | --- | --- | --- |
+| Qualité unique | ★★★ | ★★ | ★ |
+| Perf temps réel | ★ | ★★ | ★★★ |
+| Vitesse de prod | ★★ | ★★★ | ★ |
+| Instances | ✗ | ✗ | ✓ |
+| SP workflow | Natif | Natif | Hors SP |
+
+Trimsheet explaination : Packager dans un espace 0-1 plusieurs matériaux !
+
+![AAAPhotorealistic_4096px_base_color.webp](3%20Mai%202026/AAAPhotorealistic_4096px_base_color.webp)
