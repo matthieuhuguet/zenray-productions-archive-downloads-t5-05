@@ -1,0 +1,91 @@
+# Post
+
+# PushVault v2 — Social Media Posts
+
+## LinkedIn
+
+**Introducing PushVault** : L'utilitaire Windows de backup multi-projets vers GitHub.
+
+Un seul prompt peut litteralement swipe des semaines de travail.
+
+J'en ai fait l'experience : une manipulation via une IA a efface toute l'arborescence de mon projet, rendant mes assets PNG et JPEG definitivement irrecuperables.
+
+Pour tous ceux qui travaillent avec des IA sur des pipelines lourds (assets 3D, textures EXR, Houdini, UE5), j'ai developpe une solution.
+
+Les fonctionnalites cles :
+
+**Synchronisation centralisee** : Un widget Windows discret qui gere automatiquement vos operations de fetch, pull et push sur les dossiers de votre choix. Contrairement a GitHub Desktop, il gere plusieurs environnements simultanement, en un clic.
+
+**Historique granulaire** : L'outil genere automatiquement une nouvelle branche chaque jour (pv/YYYY-MM-DD), garantissant une tracabilite parfaite de vos modifications. Chaque branche est un snapshot complet.
+
+**Optimise pour le poids** : Les fichiers lourds (comme les EXR) font souvent planter les envois. PushVault segmente les transferts par blocs de 50 fichiers, garantissant une synchronisation fluide et sans blocage.
+
+**Resolution de conflits** : Interface inspiree de GitHub Desktop avec diff side-by-side, Use Ours / Use Theirs, et merge abort.
+
+**Ergonomie** : Un effort particulier a ete apporte a l'interface (UI/UX) pour qu'elle soit aussi propre qu'efficace au quotidien.
+
+**Onboarding** : Une mise en place en moins de 10 minutes.
+
+Le projet est open source. Pas de compilation requise, c'est du Python.
+Pour l'installer, il vous suffit de cloner le repo et de l'ouvrir dans Claude Code, Cursor ou OpenClaw, et de demander a l'IA de configurer l'outil selon vos besoins.
+
+Code source : [https://github.com/matthieuhuguet/pushvault/tree/v2](https://github.com/matthieuhuguet/pushvault/tree/v2)
+Presentation Demo : [https://zenray.vercel.app/](https://zenray.vercel.app/)
+
+#OpenSource #DevTools #GitHub #Python #3D #VFX #UnrealEngine5 #Houdini #AI #TechnicalArt #Backup #IndieTools
+
+---
+
+## Twitter / X
+
+Un seul prompt mal formule peut effacer des semaines de travail.
+
+J'ai perdu une arborescence complete — PNG, JPEG, EXR — irrecuperable.
+
+J'ai code PushVault : un widget Windows qui sync automatiquement vos dossiers vers GitHub. Multi-repos, branches quotidiennes, batch push, resolution de conflits.
+
+Open source, Python, zero compilation.
+
+Code : [https://github.com/matthieuhuguet/pushvault/tree/v2](https://github.com/matthieuhuguet/pushvault/tree/v2)
+Demo : [https://zenray.vercel.app/](https://zenray.vercel.app/)
+
+#OpenSource #DevTools #GitHub #Python #AI #TechArt
+
+---
+
+## Instagram
+
+**PushVault v2** — Backup automatique multi-projets vers GitHub
+
+Un prompt mal formule a efface toute l'arborescence de mon projet.
+PNG, JPEG, EXR — tout perdu, irrecuperable.
+
+J'ai construit PushVault pour que ca n'arrive plus jamais.
+
+- Sync en un clic, multi-repos
+- Branches quotidiennes automatiques
+- Batch push pour les gros assets
+- Resolution de conflits integree
+- System tray discret
+
+Open source. Python. Zero compilation.
+Lien en bio.
+
+#PushVault #OpenSource #DevTools #GitHub #Python #TechnicalArt #3DArtist #VFX #UnrealEngine #Houdini #IndieGameDev #GameDev #BackupYourWork #AI #ClaudeCode
+
+---
+
+## Call-to-Action Bridge
+
+```
+LinkedIn Post
+    |
+    v
+zenray.vercel.app (portfolio — PushVault landing page)
+    |
+    v
+github.com/matthieuhuguet/pushvault/tree/v2 (source code)
+```
+
+All social media posts point to the ZenRay website as the primary landing.
+The website then links to GitHub for the source code.
