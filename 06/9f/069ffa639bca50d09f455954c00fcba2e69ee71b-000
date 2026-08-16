@@ -1,0 +1,158 @@
+# 13 Mars 2026
+
+## 🛠️ Session Dev — 2026-03-13 (soir)
+
+### ZenRay Website (zenray.vercel.app)
+
+- **Projet #26 — Material Layer System UE5** ajouté à `/works`
+    - Page React 10 sections (Hero, Système, Master Layer, Layer Instance, Blend, Vertex Blend, RGBA Blend, Instance Result, Specs, CTA)
+    - Vidéos embarquées : `grassBlend2.mp4`, `StoneBlend2.mp4`, `montage_v2GTSectra.mp4`
+    - Thumbnail gallery : `miniaMaking2.webp` (2:1, ~2MB convertie depuis miniaMaking2_95.jpg)
+    - Commits poussés sur Vercel — live
+- **PushVault** : thumbnail swapée (minia1 → minia2), URL routing ajouté, hero banner
+
+### MaterialLayerSystem — Assets produits today
+
+| Fichier | Description |
+| --- | --- |
+| `grassBlend2.mp4` (3MB) | Render UE5 — sphère herbe vertex blend |
+| `StoneBlend2.mp4` (6.5MB) | Render UE5 — sphère pierre vertex blend |
+| `AudioOutput4.mp3` (928KB) | Voiceover TTS nettoyé (4 itérations) |
+| `montage_v2GTSectra.mp4` (15MB) | **Montage final** — FFmpeg + ImageMagick GT Sectra Black |
+| `montage_v3SRT_OpenaiWhisper.mp4` (16MB) | v2 + sous-titres Whisper small model brûlés |
+| `miniaMaking2.webp` | Thumbnail portfolio (Photoshop → JPG → WebP) |
+| `miniaSquare1.png` | Thumbnail format carré (Instagram/LinkedIn) |
+| `zenray_material_layers_content.md` | Post LinkedIn, Thread X, carrousel Instagram, landing page text, script vidéo |
+| `build_montage.py` | Script Python reproductible (FFmpeg + ImageMagick + Whisper) |
+| `MONTAGE_DOC.md` | Documentation complète du pipeline montage |
+
+### Outils utilisés
+
+- FFmpeg — assemblage vidéo, fades, mix audio
+- ImageMagick 7 — overlay titres GT Sectra Black
+- OpenAI Whisper (model `small`) — génération SRT auto
+- Python 3.14 — script montage `build_montage.py`
+- Photoshop — PSD miniatures (`miniaMaking.psd`, `MiniSquarePhotoshop.psd`)
+
+### React Presentation — Louisiana Bayou (créé en session précédente)
+
+- Dossier : `E:\\Create\\Build\\PortfolioShare\\2026-03\\2026-03-13_ReactLandingPageLouisianaBayou\\`
+- 4 slides React : Hero, Text, Grid, Challenge (CSS mask brush stroke avec PNG alpha)
+- Fonts GT Sectra Fine Black + Medium self-hosted
+- Référence visuelle : Red Dead Redemption 2 (images de référence analysées)
+- Masques : `BlackMask1Left.png`, `BlackMask2Right.png` → inversés via ImageMagick `fx "1-u.r"`
+
+### Paths clés à retenir
+
+```
+Montage final     : E:\\Create\\Build\\PortfolioShare\\2026-03\\2026-03-13_ReactLandingPageLouisianaBayou\\Assets\\MontageVideoAssets\\montage_v2GTSectra.mp4
+Script montage    : E:\\Create\\Build\\PortfolioShare\\2026-03\\2026-03-13_ReactLandingPageLouisianaBayou\\Assets\\MontageVideoAssets\\build_montage.py
+Post LinkedIn     : E:\\Create\\Build\\PortfolioShare\\2026-03\\2026-03-13_ReactLandingPageLouisianaBayou\\Assets\\zenray_material_layers_content.md → section 3.1
+ZenRay website    : E:\\Create\\Build\\ZenRayProductions\\ZenRayWebsite\\src\\App.jsx
+```
+
+[FactureHoudiniIndieTINDIE33157.pdf](13%20Mars%202026/FactureHoudiniIndieTINDIE33157.pdf)
+
+Je vais step up et faire ma scène directement sur houdini
+
+Faut que je rembourse mes dollars investi et surtout mon temps !
+
+[Presentation Material Layer Workflow](13%20Mars%202026/Presentation%20Material%20Layer%20Workflow%20322d4ee179c3801cad1cff333d395314.md)
+
+Modification sur le website [https://zenray.vercel.app/reels/material-layer-system](https://zenray.vercel.app/reels/material-layer-system) procède par étape pour modifier proprement le site en fonction de mon agency. ne tient pas compte du markdown il peut t’induire en erreur garde au plus possible ta forme de présentation actuelle. Ensuite n’oublie pas sur le site de tout traduire en anglais. go! Je t’ai vraiment fait un truc pixel perfect je veux absolument que tu respectent ce que j’ai écrit.
+
+enlève ça : **UNREAL ENGINE 5 · TECH ART · 2026
+ensuite edit Material Layer System
+en ZENRAY | Material Layer System | Unreal Engine 5
+edit ça :** 
+
+**Un pipeline matériaux modulaire, scalable et Nanite-compatible.**
+
+**Empile des surfaces. Peint en vertex color. Ajuste les transitions en temps réel. Swap les matériaux sans recompiler.**
+
+en J’ai crée dans Unreal : un système de Material Layers. En résumé, un seul matériau parent, et on empile les surfaces dessus. Comme des Layers Dans Photoshop ou Substance Painter.
+
+Pas encore compatible avec **Nanite-Displacement Height. Une Alternative serait d’utiliser le RGBA Blend voir ci dessous.
+
+Ensuite ajoute la grosse vidéo qui comporte le sons ici donc grande taille : placeholdergrossevidéomontage avec le son
+
+Par la suite enlève toute mention de 16 samplers ou matériaux ce n’est pas pertinent ce nombre.
+
+remplace edit la slide par ce texte :**
+
+**“””LE PROBLÈME**
+
+## **Pipeline Classique**
+
+**Dans un pipeline environnement classique, chaque variation de surface demande un nouveau matériau, de nouvelles textures, de nouveaux paramètres. Les artistes passent plus de temps à configurer qu'à créer.**
+
+**Les modifications cascadent. Les matériaux s'accumulent. La maintenance devient un cauchemar.”””
+Par ça** 
+
+**Problem Issued**
+Créer une transition douce entre matériaux.
+
+**Solution imaginée**
+Faire en sorte que cette transition soit gérée directement par la height map du layer qui arrive par-dessus l'autre matériau. On pourrait aussi imaginer passer par une map de Perlin Noise ou de Cloud, mais la height map récupère des informations comme la courbure, ce qui est intéressant pour les edges et la hauteur.
+
+**VERTEX COLOR PAINTING**
+
+### MLB_VertexBlend_R (Material Layer Blend  Canal Rouge)
+
+C'est ce graph qui est le plus important il blend et fait tout le travail de transition entre deux layers. Le graph se lit comme suit :
+
+- **Input Bottom Layer** (MaterialWithBlendIn) — le layer inférieur dans la stack
+- **Input Top Layer** (MaterialWithBlendIn) — le layer supérieur
+- **Vertex Color** node → extraction du canal **R** (rouge)
+- Le canal R passe par une chaîne de traitement : **Abs** → soustraction d'un seuil (**Default Value 0.5**) → **Saturate** → **Power** (contrôle de sharpness) → multiplication qui produit l'alpha final
+- Le tout alimente le **BlendMaterialAttributes** node qui fusionne Bottom et Top
+
+**L'élément clé** : le paramètre **Sharpness** (exposé comme scalaire dans l'instance) contrôle la dureté de la transition. Une valeur basse donne un blend doux et progressif. Une valeur haute produit une coupure nette, presque binaire, entre les deux matériaux.
+
+du coup ensuite tu peux enlèver ça : 
+
+**“””LA SOLUTION**
+
+## **Material Layer System Le système sépare la logique du contenu.”””**
+
+Garde ça : **ML_Master définit la structure une fois : BaseColor, Normal, ORM, Height, tiling, intensité. MLB_VertexBlend gère les transitions via Vertex Color. Ajoute : “””Ensuite on peut Instancier tout les enfants MLI””” Canal R, G et B contrôlent chacun un layer distinct.**
+
+Ensuite sur le panner enlève les termes bullshit 188 Instructions, 4K, RayTracing, Instruction
+
+Ensuite ajoute
+**MLB_VertexBlend_R | G | B**
+
+Sur cette slide : **M_Master_Layered
+Remplace ce texte : “””Le matériau parent qui orchestre l'ensemble du système. Configuration minimale par design : un seul node Material Attribute Layers connecté au Front Material. Toute la complexité est déléguée aux layers et blends.”””
+Par celui ci : 
+Matériau parent. Un seul node Material Attribute Layers. Toute la complexité vit dans les layers et blends.**
+
+enlève ce texte: “””**Stats (stack compilé) : 188 instructions base pass — Resources 4 / 64 — Samplers 0 / 16 — Nanite + Lumen + Ray Tracing.”””**
+
+**STACK EN ACTION Remplace par : Demo
+
+Ensuite 
+
+edit text  MLB_RGBA_Blend devient RGBA_Mask Generated In Houdini or Substance Painter.
+cette texture pourrait être dans : MLB_RGBA_Blend aussi.**
+
+"E:\Create\Build\PortfolioShare\2026-03\2026-03-13_ReactLandingPageLouisianaBayou\Assets\RGBABlend.jpg"
+"E:\Create\Build\PortfolioShare\2026-03\2026-03-13_ReactLandingPageLouisianaBayou\Assets\RGBABlend2.jpg"
+
+ **le budget performance que vous vous fixez. Ajoute après  “””4 Layers en plus étant déjà un mix de 16 textures avec le workflow ORM, je ne conseillerais pas d'aller au-delà pour du game d'après la doc. En revanche, pour d'immenses montagnes générées dans Gaia ou Houdini, ça peut valoir le coup.”””**
+
+Enlève ça à la fin : 
+
+**Coût shader total188 instructions (base pass)**
+
+**Resources4 utilisées / 64 limit**
+
+**Samplers au niveau blend0 / 16**
+
+**CompatibilitéNanite, Lumen, Ray Tracing**
+
+**Nombre d'assets16 (template complet)**
+
+**16 assets. Un système complet.**
+
+**Modulaire. Scalable. Nanite-compatible. Prêt pour la production.**
