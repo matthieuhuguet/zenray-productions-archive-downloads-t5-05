@@ -1,0 +1,82 @@
+# 6 Mai 2026
+
+https://www.youtube.com/watch?v=GxFTxr_RJTI
+
+https://www.youtube.com/watch?v=2VVzRcrV57Q
+
+[**Anna Nagase [永瀬アンナ] Top Same Voice Characters Roles**YouTube·FK Studios·28 Jun 2025](https://www.youtube.com/watch?v=UVRJJYYZna4)
+
+![](https://www.gstatic.com/images/branding/product/1x/youtube_32dp.png)
+
+Honnêtement niveau modé c’est très clean notamment si tu arrive ensuite à rajouter à la fois plus de détails en 3D et surtout en texturing honnêtement tu peux aller très loin.
+
+![image.png](6%20Mai%202026/image.png)
+
+![image.png](6%20Mai%202026/image%201.png)
+
+intérêt ? avoir la bonne taille en bouding box mais honnêtement j’ai l’impression que tu peux rien faire de ça … 
+
+![image.png](6%20Mai%202026/image%202.png)
+
+![image.png](6%20Mai%202026/image%203.png)
+
+Sur les relations 
+
+01:10
+
+## Claude responded: Environnement — voyage solo, festivals, contextes de déplacement.
+
+1. **Environnement** — voyage solo, festivals, contextes de déplacement. Le terrain fait le boulot.
+2. **Casser le premier filtre** — une vraie expérience recalibre tout neurologiquement. Priorité absolue.
+3. **Maîtriser la transition** — le moment physique non-ambigu. C'est la seule compétence qui compte vraiment.
+4. **État interne réel** — une vie qui t'intéresse sans attente. Pas simulable.
+5. **Porn/masturbation** — réduire pour recalibrer la dopamine. Utile mais pas le goulot principal.
+
+Sur la lecture
+
+Au bout d’un moment ou tu comprends vraiment le texte ta meilleure voix c’est ta voix naturelle d’homme (légèrement féminine mais assume) c’est bien. Faut juste que tu vise : voix naturelle qui ose. (ressemble à anais).
+
+Parler très lentement pour avoir le temps de doser sa voix.
+
+Mais ajouter du style après la fonctionnalité.
+
+Le truc c'est qu'il y a deux choses :
+
+1. Il y a la diction qui impose de parler lentement et de comprendre les mots. ça ça te fait parler comme un enfant.
+2. Et ensuite il y a la forme et le style. qui te fait parler comme un adulte mais il ne faut pas le surjouer.
+
+Dans le style il faut utiliser une voix grave, un peu rocailleuse, essayer vraiment de faire porter sa voix grave, quoi. Et ça c'est très joli mais c'est difficile de faire les deux parce que tu n'as pas forcément une voix très grave de base, tu vois.
+
+Utiliser à la fois ma voie fluette et ma voix grave la voix grave est plus jolie mais elle est plus difficile à maitriser
+
+Aujourd’hui j’ai croisé un banc d’au moins 15 sangliers qui marchaient en mode mononoke.
+
+lol dario bon j’aurai peut être pas de mal à cancel mon abonnement du coup mdr. pas oublié avec le compte [matthieuhuguet@gmail.com](mailto:matthieuhuguet@gmail.com) de cancel juste avant.
+
+![image.png](6%20Mai%202026/image%204.png)
+
+| Opus 4.7 | 87 |
+| --- | --- |
+| Sonnet High 4.6 | 86 |
+| Sonnet Medium 4.6 | 82 |
+
+drag and drop dans le viewport de substance painter.
+
+material palette pour acceder directement au différent matériaux.
+
+Houdini MCP vs Computer USE
+
+- Tu sais ce que tu cherches → **MCP**
+- Tu explores / tu sais pas où c'est / tu veux voir le graph → **computer use**
+
+| **Type** | **Use Case** | **Solution A — Node pur** | **Solution B — Wrangle VEX** |
+| --- | --- | --- | --- |
+| **Points** | Base géo (YMIN) — pivot, matchsize, line | Group SOP → Bounding Box → Y: `$YMIN` à `$YMIN+0.001` | `float ymin = getbbox_min(0).y;` `i@group_base = (@P.y < ymin + 0.001);` |
+| **Points** | Proximité à une surface — zones d'influence, blend | Attribute Transfer + seuil → Group by Attribute | `i@near = (xyzdist(1, @P) < chf("radius"));` input 1 = geo cible |
+| **Points** | Intérieur d'un volume — scatter masqué, VDB | Group SOP → Keep In → Bounding Object (ref geo) | `i@inside = (volumesample(1, "surface", @P) < 0);` input 1 = VDB SDF |
+| **Edges** | Boundary edges (contour ouvert) — polyexpand, stitch | Group SOP → Edges → **Open Edges** toggle | Labs: **Find Boundary Edges** → group auto nommé `boundary` |
+| **Edges** | Hard edges par angle dièdre — bevel, UV seams, normals | Group SOP → Edges → **By Dihedral Angle** → seuil (ex: 45°) | Measure SOP → `edge_angle` attrib → Group by Attribute range |
+| **Edges** | Edges horizontales à hauteur fixe — base rectangle | Group SOP → Edges → Bounding Box Y (epsilon fin) | Halfedge wrangle: comparer `@P.y` des deux endpoints de chaque hedge |
+| **Prims** | Faces par normale — toit, sol, murs | Group SOP → Primitives → **By Normal** → direction + spread | `i@roof = (dot(normalize(@N),{0,1,0}) > cos(radians(chf("a"))));` |
+| **Prims** | Faces par aire — filtrer micro-polygones, LOD | Measure SOP → **Area** → Group SOP → by Attribute range | `i@large = (@area > chf("min_area"));` (après Measure) |
+| **Prims** | Faces par île/connectivité — foreach targeting | Connectivity SOP → `@class` → Group SOP by Attribute value | `i@piece = (@class == chi("target"));` — post-Connectivity |
