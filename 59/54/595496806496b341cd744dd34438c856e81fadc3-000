@@ -1,0 +1,520 @@
+# Herbe Procédurale dans Houdini — Guide Étape par Étape
+### Reproduire le système de Ghost of Tsushima
+
+Chaque étape te donne un résultat visible dans le viewport.
+Les noms entre `backticks` sont les noms exacts des nodes Houdini.
+
+---
+
+## ÉTAPE 1 — Le terrain de base
+
+**Objectif :** Avoir une surface sur laquelle planter l'herbe.
+
+```
+Nodes à créer (niveau /obj) :
+1. Geometry node → renomme-le "TERRAIN"
+```
+
+**À l'intérieur de TERRAIN :**
+
+```
+1. Grid SOP
+   — Size : 20m × 20m (tu verras un carré plat)
+   — Rows / Columns : 100 × 100
+   
+2. Mountain SOP (branche sur le Grid)
+   — Height : 0.5
+   — Element Size : 5
+   → Tu vois maintenant un terrain vallonné
+
+3. Subdivide SOP (branche sur Mountain)
+   — Depth : 1
+   → Le terrain est plus lisse
+
+4. Color SOP (branche sur Subdivide)
+   — Color : vert foncé (0.15, 0.25, 0.1)
+   → Ça te sert de preview pour le sol
+```
+
+**Résultat visible :** Un terrain vert vallonné de 20m × 20m.
+
+---
+
+## ÉTAPE 2 — Scattering des points (placement de l'herbe)
+
+**Objectif :** Placer des milliers de points sur le terrain. Chaque point = un futur brin d'herbe.
+
+**Toujours dans le node TERRAIN, à la suite :**
+
+```
+5. Scatter SOP (branche sur le Subdivide, PAS sur le Color)
+   — Force Total Count : ON
+   — Number of Points : 50 000
+   — Relax Iterations : 10 (ça espace les points uniformément)
+   
+   → Tu vois 50 000 points répartis sur ton terrain
+```
+
+**IMPORTANT — Ajouter les normales du terrain :**
+
+```
+6. Attribute Transfer SOP
+   — Source : branche le Subdivide (ton terrain)
+   — Input 2 : les points du Scatter
+   — Coche "Point" → Attributes : N
+   
+   → Chaque point connaît maintenant l'orientation du terrain sous lui
+```
+
+**Résultat visible :** 50 000 points blancs répartis sur le terrain.
+
+---
+
+## ÉTAPE 3 — Attributs de base par brin
+
+**Objectif :** Donner à chaque point les informations qui vont définir son brin d'herbe (hauteur, direction, etc.)
+
+```
+7. Attribute Wrangle SOP (branche sur l'Attribute Transfer)
+   — Run Over : Points
+```
+
+**Colle ce VEX :**
+
+```vex
+// === HAUTEUR du brin ===
+// Random entre min et max, avec du bruit pour la variation naturelle
+float height_min = chf("height_min");  // Slider : 0.1
+float height_max = chf("height_max");  // Slider : 0.4
+float height_noise = noise(@P * 0.5) * 2 - 1; // -1 à 1
+f@height = fit(height_noise, -1, 1, height_min, height_max);
+
+// === DIRECTION du brin (facing) ===
+// Vecteur 2D : dans quelle direction le brin penche
+float angle = random(@ptnum * 12.345) * 6.2831; // angle aléatoire 0-2PI
+v@facing = set(cos(angle), 0, sin(angle));
+
+// === LARGEUR du brin ===
+f@width = fit01(random(@ptnum * 67.89), 0.008, 0.02); // 8mm à 2cm
+
+// === TILT (inclinaison) ===
+// 0 = vertical, 1 = couché
+f@tilt = fit01(random(@ptnum * 33.33), 0.05, 0.35);
+
+// === BEND (courbure) ===
+f@bend = fit01(random(@ptnum * 99.99), 0.2, 0.6);
+
+// === HASH unique par brin (pour l'animation plus tard) ===
+f@blade_hash = random(@ptnum * 777.777);
+```
+
+**Créer les sliders :** Clique sur le bouton à droite du champ VEX → "Create Spare Parameters". Ça crée les sliders `height_min`, `height_max` sur le node.
+
+**Résultat visible :** Visuellement pareil (ce sont des points), mais si tu cliques sur un point dans le viewport, tu vois ses attributs dans le Geometry Spreadsheet.
+
+---
+
+## ÉTAPE 4 — Clumping Voronoi (regroupement en touffes)
+
+**C'est l'ingrédient qui transforme du gazon en champ naturel.**
+
+```
+8. Attribute Wrangle SOP (branche sur le précédent)
+   — Run Over : Points
+   — Renomme-le "clumping"
+```
+
+**Colle ce VEX :**
+
+```vex
+// Taille des touffes (en mètres)
+float clump_scale = chf("clump_scale"); // Slider : 1.5
+
+// Position normalisée par la taille des touffes
+vector2 pos = set(@P.x, @P.z) / clump_scale;
+
+// Trouver la touffe la plus proche (Voronoi manuel)
+float min_dist = 1e10;
+int best_id = 0;
+vector2 best_center = {0, 0};
+
+for (int x = -1; x <= 1; x++) {
+    for (int y = -1; y <= 1; y++) {
+        vector2 cell = floor(pos) + set(x, y);
+        // Jitter : décale le centre de chaque cellule aléatoirement
+        float jx = random(cell.x * 127.1 + cell.y * 311.7) * 0.8;
+        float jy = random(cell.x * 269.5 + cell.y * 183.3) * 0.8;
+        vector2 center = cell + set(jx, jy);
+        
+        float d = distance(pos, center);
+        if (d < min_dist) {
+            min_dist = d;
+            best_id = int(random(cell.x * 419.2 + cell.y * 371.9) * 10000);
+            best_center = center * clump_scale;
+        }
+    }
+}
+
+// Stocker les infos de touffe
+i@clump_id = best_id;
+f@clump_dist = min_dist * clump_scale;
+
+// === INFLUENCE SUR LA HAUTEUR ===
+// Plus haut au centre de la touffe, plus court aux bords
+float height_mult = fit(f@clump_dist, 0, clump_scale * 0.6, 1.2, 0.5);
+f@height *= height_mult;
+
+// === INFLUENCE SUR LA DIRECTION ===
+// Les brins pointent vers le centre de leur touffe
+float pull = chf("clump_pull"); // Slider : 0.3
+vector to_center = set(best_center.x - @P.x, 0, best_center.y - @P.z);
+to_center = normalize(to_center);
+v@facing = normalize(lerp(v@facing, to_center, pull));
+
+// === COULEUR PAR TOUFFE (preview) ===
+// Variation subtile pour voir les touffes dans le viewport
+float hue = random(best_id) * 0.15 + 0.2; // vert avec variation
+v@Cd = hsvtorgb(set(hue, 0.6, 0.5));
+```
+
+**Résultat visible :** Les points sont maintenant colorés par touffe — tu vois un motif Voronoi naturel sur ton terrain. Chaque "zone" de couleur = une touffe d'herbe.
+
+---
+
+## ÉTAPE 5 — Construire les brins (courbes de Bézier)
+
+**Objectif :** Transformer chaque point en une courbe qui représente un brin d'herbe.
+
+```
+9. Attribute Wrangle SOP (branche sur clumping)
+   — Run Over : Points
+   — Renomme-le "build_blades"
+```
+
+**Colle ce VEX :**
+
+```vex
+int segments = chi("segments"); // Slider : 7 (low) ou 15 (high)
+float height = f@height;
+float tilt = f@tilt;
+float bend = f@bend;
+vector facing = normalize(v@facing);
+vector base = v@P;
+
+// === 4 POINTS DE CONTRÔLE BÉZIER ===
+
+// P0 = base (au sol)
+vector P0 = base;
+
+// P3 = pointe du brin
+vector P3 = base + set(
+    facing.x * tilt * height,
+    height * (1.0 - tilt * 0.3),
+    facing.z * tilt * height
+);
+
+// P2 = milieu haut (contrôle la courbure principale)
+vector mid = lerp(P0, P3, 0.5);
+vector up_push = set(0, bend * height * 0.35, 0);
+vector P2 = mid + up_push;
+
+// P1 = milieu bas
+vector P1 = lerp(P0, P2, 0.33);
+
+// === GÉNÉRER LA COURBE ===
+int prim = addprim(0, "polyline");
+vector blade_color = v@Cd;
+float blade_width = f@width;
+float blade_hash = f@blade_hash;
+
+for (int i = 0; i <= segments; i++) {
+    float t = float(i) / float(segments);
+    
+    // Redistribution : plus de vertices vers la base
+    float t2 = pow(t, 1.3);
+    
+    // Formule Bézier cubique
+    float u = 1.0 - t2;
+    vector pos = u*u*u * P0
+               + 3.0*u*u*t2 * P1
+               + 3.0*u*t2*t2 * P2
+               + t2*t2*t2 * P3;
+    
+    int pt = addpoint(0, pos);
+    
+    // Attributs par vertex
+    setpointattrib(0, "blade_t", pt, t);           // 0=base, 1=tip
+    setpointattrib(0, "width", pt, blade_width * (1.0 - pow(t, 1.5))); // tapering
+    setpointattrib(0, "Cd", pt, blade_color);
+    setpointattrib(0, "blade_hash", pt, blade_hash);
+    
+    addvertex(0, prim, pt);
+}
+
+// Supprimer le point original (on l'a remplacé par la courbe)
+removepoint(0, @ptnum);
+```
+
+**Résultat visible :** Ton viewport affiche maintenant des milliers de **courbes colorées** qui montent depuis le terrain. Chaque courbe = un brin d'herbe avec la bonne courbure Bézier. Les touffes sont visibles par la couleur.
+
+---
+
+## ÉTAPE 6 — Donner du volume aux brins (Sweep)
+
+**Objectif :** Transformer les courbes (lignes) en géométrie plate (comme de vrais brins).
+
+```
+10. Line SOP (nouveau, séparé — c'est le profil du brin)
+    — Direction : 1, 0, 0
+    — Length : 1
+    — Origin : -0.5, 0, 0
+    → Ça crée une ligne horizontale de 1 unité, centrée
+
+11. Sweep SOP
+    — Input 1 (Backbone) : branche "build_blades"
+    — Input 2 (Cross section) : branche le "Line"
+    — Scale : cocher "Scale Cross Section by Attribute"
+    — Attribute : width
+    
+    → Les courbes deviennent des rubans plats !
+```
+
+**Alternative plus simple si le Sweep pose problème :**
+
+```
+10b. Polywire SOP (branche sur build_blades)
+    — Wire Radius : 0.005
+    — Divisions : 2 (on veut du plat, pas du rond)
+    
+    → Plus rapide mais moins de contrôle
+```
+
+**Résultat visible :** Des brins d'herbe en 3D, courbés, avec la bonne épaisseur qui diminue vers la pointe.
+
+---
+
+## ÉTAPE 7 — Couleur réaliste
+
+**Objectif :** Passer de la couleur de debug (par touffe) à un vert réaliste.
+
+```
+12. Attribute Wrangle SOP (branche sur le Sweep ou Polywire)
+    — Run Over : Points
+    — Renomme-le "color_blades"
+```
+
+**Colle ce VEX :**
+
+```vex
+float t = f@blade_t; // 0 = base, 1 = tip
+
+// Couleurs de base
+vector base_color = chv("base_color");  // Vert foncé : (0.08, 0.15, 0.03)
+vector tip_color = chv("tip_color");    // Vert clair : (0.25, 0.45, 0.08)
+
+// Gradient base → tip
+vector col = lerp(base_color, tip_color, t);
+
+// Variation par touffe (subtile)
+float clump_var = chf("clump_variation"); // Slider : 0.1
+float clump_offset = random(i@clump_id) * clump_var;
+col *= 1.0 - clump_offset;
+
+// Légère variation par brin
+float blade_var = random(f@blade_hash * 55.55) * 0.05;
+col *= 1.0 - blade_var;
+
+// Assombrir la base (fake AO)
+float ao = fit(t, 0, 0.3, 0.4, 1.0);
+col *= ao;
+
+v@Cd = col;
+```
+
+**Résultat visible :** Les brins sont maintenant vert réaliste — foncés à la base, clairs vers la pointe, avec des variations subtiles par touffe.
+
+---
+
+## ÉTAPE 8 — Animation du vent
+
+**Objectif :** Faire bouger les brins avec le vent. Appuie sur Play dans la timeline pour voir.
+
+**IMPORTANT :** Cette étape se place **AVANT le Sweep** (entre build_blades et Sweep). Le vent déforme les courbes, ensuite le Sweep leur donne du volume.
+
+```
+13. Attribute Wrangle SOP
+    — Insère-le ENTRE "build_blades" et le Sweep
+    — Run Over : Points
+    — Renomme-le "wind_animation"
+```
+
+**Colle ce VEX :**
+
+```vex
+// === PARAMÈTRES DU VENT ===
+vector wind_dir = normalize(chv("wind_direction")); // Direction : (1, 0, 0.3)
+float wind_speed = chf("wind_speed");               // Slider : 2.0
+float wind_strength = chf("wind_strength");          // Slider : 0.15
+float wind_freq = chf("wind_frequency");             // Slider : 0.3
+float time = @Time;
+
+float t = f@blade_t; // 0 = base, 1 = tip
+
+// La base ne bouge pas, le mouvement augmente vers la tip
+float influence = pow(t, 2.0);
+
+// === VENT GLOBAL (Perlin Noise 2D scrollé) ===
+// C'est ça qui crée les "vagues" dans le champ
+vector noise_pos = set(
+    @P.x * wind_freq + wind_dir.x * time * wind_speed,
+    0,
+    @P.z * wind_freq + wind_dir.z * time * wind_speed
+);
+float wind_value = noise(noise_pos);
+
+// Deuxième couche de noise (détail)
+vector detail_pos = noise_pos * 3.0 + set(time * 0.5, 0, time * 0.3);
+float wind_detail = noise(detail_pos);
+
+// Combiner
+float total_wind = (wind_value * 0.7 + wind_detail * 0.3) * wind_strength;
+
+// Appliquer : pousser les vertices dans la direction du vent
+@P.x += wind_dir.x * total_wind * influence;
+@P.z += wind_dir.z * total_wind * influence;
+
+// Légère compression verticale quand le vent pousse (le brin se couche)
+@P.y -= abs(total_wind) * influence * 0.3;
+
+// === BOBBING PAR BRIN (oscillation individuelle) ===
+float bob_speed = chf("bob_speed");       // Slider : 3.0
+float bob_strength = chf("bob_strength"); // Slider : 0.02
+
+// Phase unique par brin + variation le long du brin
+float phase = f@blade_hash * 6.2831 + t * 1.5;
+
+// Oscillation sinusoïdale
+float bob = sin(time * bob_speed + phase) * bob_strength * influence;
+@P.y += bob;
+
+// Léger sway latéral
+float sway = sin(time * bob_speed * 0.7 + phase + 1.0) * bob_strength * 0.4 * influence;
+@P.x += sway;
+```
+
+**IMPORTANT :** Assure-toi que la timeline est en mode "Play" (barre espace) et que tu as au moins 240 frames pour bien voir le mouvement.
+
+**Résultat visible :** Les brins d'herbe ondulent dans le vent. Tu vois les vagues traverser le champ grâce au Perlin noise, et chaque brin a son propre micro-mouvement grâce au bobbing.
+
+---
+
+## ÉTAPE 9 — Masking (où l'herbe ne pousse PAS)
+
+**Objectif :** Supprimer l'herbe dans l'eau, sur les rochers, sous les bâtiments.
+
+**Cette étape se place APRÈS le Scatter (étape 5), AVANT les attributs (étape 7).**
+
+**Méthode 1 — Paint manuel :**
+
+```
+Insère entre le Scatter et l'Attribute Transfer :
+
+A. Attribute Paint SOP (branche sur le terrain Subdivide)
+   — Attribute : grass_mask
+   — FG Value : 1 (herbe)
+   — BG Value : 0 (pas d'herbe)
+   — Peins directement dans le viewport (clique et drag)
+   → Peins en noir les zones sans herbe (eau, chemins, rochers)
+
+B. Attribute Transfer SOP
+   — Source : le terrain peint
+   — Destination : les points scattérés
+   — Attributs : grass_mask
+
+C. Delete SOP
+   — Entity : Points
+   — Expression : @grass_mask < 0.5
+   → Les points dans les zones noires disparaissent
+```
+
+**Méthode 2 — Par géométrie (plus procédural) :**
+
+```
+Si tu as un mesh "eau" ou un mesh "route" :
+
+A. Group by Range SOP ou Group SOP sur les points scattérés
+   — Utilise un Bounding box ou un VEX expression :
+     @P.y < 0.1 (tout ce qui est sous le niveau de l'eau)
+
+B. Delete SOP — supprime ce groupe
+```
+
+**Résultat visible :** L'herbe disparaît des zones peintes / des zones d'eau.
+
+---
+
+## RÉSUMÉ — Arbre de nodes complet
+
+```
+TERRAIN (Geometry node)
+│
+├── Grid
+│   └── Mountain
+│       └── Subdivide
+│           ├── Color (preview sol) ─────────────────── [DISPLAY pour le sol]
+│           │
+│           ├── [Attribute Paint — grass_mask]  ← optionnel
+│           │
+│           └── Scatter (50000 pts)
+│               └── Attribute Transfer (normales du terrain)
+│                   └── [Delete — par grass_mask]  ← optionnel
+│                       └── Wrangle "base_attributes" (height, facing, width...)
+│                           └── Wrangle "clumping" (voronoi, clump_id...)
+│                               └── Wrangle "build_blades" (courbes Bézier)
+│                                   └── Wrangle "wind_animation" (Perlin + bobbing)
+│                                       ├── Sweep (Line profile) ─── Wrangle "color" ── [DISPLAY]
+│                                       └── [ou Polywire alternative]
+```
+
+---
+
+## TIPS DE VIEWPORT
+
+**Pour que ça soit beau dans le viewport pendant que tu travailles :**
+
+- **Au stade des points (étapes 2-4) :**
+  → Display As : Points
+  → Point Size : 3 (menu Display Options → Geometry → Point Size)
+
+- **Au stade des courbes (étape 5) :**
+  → Ça s'affiche automatiquement comme des lignes
+  → Active les couleurs : bouton "Cd" dans le toolbar viewport (ou touche D → Markers → Point Colors)
+
+- **Au stade du Sweep (étape 6+) :**
+  → Mode Shaded (touche W → Smooth Shaded)
+  → Active l'éclairage : Display Options → Lighting → Headlight ou Environment
+
+- **Performance :**
+  → Si ça rame, baisse le nombre de points dans le Scatter (10 000 au lieu de 50 000)
+  → Ou ajoute un Delete SOP avec "Random" et Keep : 25% pour ne voir qu'un quart
+
+- **Timeline pour le vent :**
+  → Range : 1 - 240
+  → FPS : 24
+  → Appuie sur Play (barre espace) pour voir l'animation
+
+---
+
+## POUR ALLER PLUS LOIN
+
+**Une fois que tout ça fonctionne, les améliorations dans l'ordre :**
+
+1. **LOD** — Ajouter un Delete qui supprime 75% des brins au-delà d'une distance caméra
+2. **Split blades** — Pour l'herbe courte, générer 2 brins au lieu d'1 par point
+3. **Assets scattérés** — Un deuxième Scatter à densité plus faible + Copy to Points pour placer des meshes (fleurs, pampas)
+4. **Interaction joueur** — Un attribut de displacement qui écrase l'herbe autour d'un point (le personnage)
+5. **HDA** — Encapsuler tout ça dans un Digital Asset pour l'utiliser dans UE5 via Houdini Engine
+
+---
+
+*Basé sur "Procedural Grass in Ghost of Tsushima" — Eric Woley, Sucker Punch Productions*
